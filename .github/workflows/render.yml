@@ -1,4 +1,4 @@
-name: Remotion Video Render
+name: Remotion Telegram Test
 on:
   repository_dispatch:
     types: [render_video]
@@ -13,6 +13,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: 2. Install Dependencies
         run: |
@@ -21,49 +22,17 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: 3. Render Remotion Video
-        # n8n sẽ gửi payload gồm images và texts
+        # n8n gửi payload: {"video_data": {"images": [...], "texts": [...]}}
         run: |
           npx remotion render MainVideo out/video.mp4 --props='${{ toJson(github.event.client_payload.video_data) }}'
 
-      - name: 4. Upload to Telegram and Log to Sheets
+      - name: 4. Send to Telegram Bot
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GS_URL: "https://script.google.com/macros/s/AKfycbyyrikjvvSZoaH53fKQyiqeMekTpBxuaSAEg5k8L9wjo8U7NILaxFG88t9iN1YSvIjN/exec"
+          TG_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TITLE: ${{ github.event.client_payload.title }}
         run: |
-          python3 -c "
-          import requests, os, urllib.parse, sys
-          
-          def run():
-              try:
-                  token = os.environ.get('TELEGRAM_TOKEN')
-                  chat_id = os.environ.get('TELEGRAM_CHAT_ID')
-                  title = os.environ.get('TITLE', 'No Title')
-                  gs_url = os.environ.get('GS_URL')
-
-                  print('--- Uploading to Telegram ---')
-                  with open('out/video.mp4', 'rb') as f:
-                      r_tg = requests.post(
-                          f'https://api.telegram.org/bot{token}/sendVideo',
-                          data={'chat_id': chat_id, 'caption': '✅ Remotion Rendered: ' + title},
-                          files={'video': f}
-                      )
-                  
-                  if r_tg.status_code != 200:
-                      print(f'❌ Telegram Error: {r_tg.text}')
-                      sys.exit(1)
-                  
-                  file_id = r_tg.json()['result']['video']['file_id']
-                  print(f'✅ File ID: {file_id}')
-          
-                  print('--- Logging to Google Sheets ---')
-                  final_gs_url = f'{gs_url}?title={urllib.parse.quote(title)}&url={urllib.parse.quote(file_id)}'
-                  r_gs = requests.get(final_gs_url)
-                  print(f'✅ Google Sheets response: {r_gs.text}')
-                  
-              except Exception as e:
-                  print(f'❌ Lỗi: {str(e)}')
-                  sys.exit(1)
-          run()
-          "
+          curl -v -F "chat_id=$TG_CHAT_ID" \
+          -F "video=@out/video.mp4" \
+          -F "caption=🚀 Render xong: $TITLE" \
+          https://api.telegram.org/bot$TG_TOKEN/sendVideo
