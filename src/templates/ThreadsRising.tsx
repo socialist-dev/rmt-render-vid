@@ -4,7 +4,7 @@ import { ThreadsCard } from '../components/ThreadsCard';
 export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
     return (
         <AbsoluteFill style={{ backgroundColor: '#000' }}>
-            {/* 1. Video nền mờ phía sau */}
+            {/* 1. Video nền */}
             <AbsoluteFill>
                 {backgroundUrl && (
                     <OffthreadVideo 
@@ -14,27 +14,25 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                 )}
             </AbsoluteFill>
 
-            {/* 2. Lưới Grid trang trí */}
+            {/* 2. Grid trang trí */}
             <AbsoluteFill style={{ 
                 backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)',
                 backgroundSize: '60px 60px',
                 opacity: 0.1
             }} />
 
-            {/* 3. Luồng bài đăng trồi lên */}
+            {/* 3. Danh sách bài đăng */}
             <Series>
                 {posts.map((post: any, index: number) => {
                     const mediaSrc = post.supportingMediaUrl;
-                    // Tự động kiểm tra xem n8n gửi GIF hay Video
                     const isGif = mediaSrc?.toLowerCase().endsWith('.gif') || mediaSrc?.includes('giphy.com') || mediaSrc?.includes('tenor.com');
 
                     return (
                         <Series.Sequence key={index} durationInFrames={150}>
-                            <RisingAnimation>
-                                {/* Card bài đăng Threads (Dark UI) */}
+                            {/* QUAN TRỌNG: Chỉ truyền hiệu ứng trồi lên cho các bài từ thứ 2 trở đi (index > 0) */}
+                            <RisingAnimation animate={index !== 0}>
                                 <ThreadsCard {...post} />
                                 
-                                {/* Khu vực GIF/Video bổ trợ phía dưới */}
                                 {mediaSrc && (
                                     <div style={{
                                         marginTop: '30px',
@@ -42,20 +40,14 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                                         height: '550px',
                                         borderRadius: '24px',
                                         overflow: 'hidden',
-                                        border: '5px solid #fff', // Viền trắng nổi bật
+                                        border: '5px solid #fff',
                                         boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
                                         backgroundColor: '#111'
                                     }}>
                                         {isGif ? (
-                                            <Img 
-                                                src={mediaSrc}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
+                                            <Img src={mediaSrc} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <OffthreadVideo 
-                                                src={mediaSrc}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
+                                            <OffthreadVideo src={mediaSrc} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         )}
                                     </div>
                                 )}
@@ -68,14 +60,21 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
     );
 };
 
-const RisingAnimation: React.FC<{children: React.ReactNode}> = ({ children }) => {
+// Component xử lý hiệu ứng động
+const RisingAnimation: React.FC<{children: React.ReactNode, animate: boolean}> = ({ children, animate }) => {
     const frame = useCurrentFrame();
     const { fps, height } = useVideoConfig();
-    const spr = spring({ frame, fps, config: { damping: 15, stiffness: 100 } });
+
+    // Nếu animate = true (các bài sau), dùng spring. Nếu false (bài đầu), ép giá trị về 1 (đã hoàn thành animation)
+    const spr = animate ? spring({ 
+        frame, 
+        fps, 
+        config: { damping: 15, stiffness: 100 } 
+    }) : 1;
     
-    // Hiệu ứng trồi lên mượt mà
-    const translateY = interpolate(spr, [0, 1], [height / 1.5, 0]);
-    const opacity = interpolate(spr, [0, 0.4], [0, 1]);
+    // Nếu animate = true, trồi từ dưới lên. Nếu false, đứng yên (translateY = 0)
+    const translateY = animate ? interpolate(spr, [0, 1], [height / 1.5, 0]) : 0;
+    const opacity = animate ? interpolate(spr, [0, 0.4], [0, 1]) : 1;
 
     return (
         <AbsoluteFill style={{ 
