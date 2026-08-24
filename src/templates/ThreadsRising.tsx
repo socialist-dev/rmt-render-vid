@@ -1,21 +1,12 @@
 import { AbsoluteFill, Series, interpolate, useCurrentFrame, useVideoConfig, spring, OffthreadVideo } from 'remotion';
 import { ThreadsCard } from '../components/ThreadsCard';
 
-export const ThreadsRising: React.FC<any> = (props) => {
-    const frame = useCurrentFrame();
-    const { height } = useVideoConfig();
-
-    // LOGIC BÓC TÁCH DỮ LIỆU THÔNG MINH
-    const data = props.videoData || props; 
-    const backgroundUrl = data.backgroundUrl;
-    const posts = data.posts || [];
-    const title = data.title || "";
-
+export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
     return (
         <AbsoluteFill style={{ backgroundColor: '#000' }}>
-            {/* 1. Background Video */}
+            {/* Background Video - Lấy trực tiếp từ backgroundUrl */}
             <AbsoluteFill>
-                {backgroundUrl ? (
+                {backgroundUrl && (
                     <OffthreadVideo 
                         src={backgroundUrl} 
                         style={{ 
@@ -25,21 +16,16 @@ export const ThreadsRising: React.FC<any> = (props) => {
                             opacity: 0.5 
                         }}
                     />
-                ) : (
-                    // Nếu vẫn không thấy URL, hiện màu xám để bạn biết là data chưa vào
-                    <div style={{ backgroundColor: '#222', flex: 1, justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
-                        <h1 style={{color: 'white'}}>Waiting for Background URL...</h1>
-                    </div>
                 )}
             </AbsoluteFill>
 
-            {/* 2. Grid Overlay */}
+            {/* Grid Overlay trang trí */}
             <AbsoluteFill style={{ 
                 backgroundImage: 'radial-gradient(circle, #ffffff1a 1px, transparent 1px)', 
                 backgroundSize: '40px 40px' 
             }} />
 
-            {/* 3. Hiển thị danh sách Posts */}
+            {/* Danh sách các bài đăng */}
             <Series>
                 {posts.map((post: any, index: number) => (
                     <Series.Sequence key={index} durationInFrames={150}>
@@ -49,28 +35,16 @@ export const ThreadsRising: React.FC<any> = (props) => {
                     </Series.Sequence>
                 ))}
             </Series>
-
-            {/* 4. Footer Debug (Dòng chữ bạn thấy ở cuối video) */}
-            <div style={{
-                position: 'absolute', 
-                bottom: 40, 
-                width: '100%', 
-                textAlign: 'center', 
-                color: 'white', 
-                fontSize: 30,
-                opacity: 0.5
-            }}>
-                🚀 Render: {title || "No Title Found"}
-            </div>
         </AbsoluteFill>
     );
 };
 
-// Giữ nguyên phần RisingAnimation bên dưới
 const RisingAnimation: React.FC<{children: React.ReactNode}> = ({ children }) => {
     const frame = useCurrentFrame();
     const { fps, height } = useVideoConfig();
     const spr = spring({ frame, fps, config: { damping: 14, stiffness: 100 } });
+    
+    // Hiệu ứng trồi lên từ giữa màn hình
     const translateY = interpolate(spr, [0, 1], [height / 2, 0]);
     const opacity = interpolate(spr, [0, 0.5], [0, 1]);
     const scale = interpolate(spr, [0, 1], [0.9, 1]);
