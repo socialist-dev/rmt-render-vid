@@ -2,14 +2,15 @@ import { Composition, getInputProps } from 'remotion';
 import { ThreadsRising } from './templates/ThreadsRising';
 
 export const RemotionRoot: React.FC = () => {
+    // 1. Lấy dữ liệu từ n8n gửi lên (client_payload)
     const inputProps = (getInputProps() || {}) as any;
     
-    // Lấy videoData từ n8n payload
+    // 2. Trích xuất videoData
     const videoData = inputProps.videoData || {};
-    const posts = videoData.posts || [];
     
+    // 3. Lấy danh sách posts để tính thời lượng
+    const posts = videoData.posts || [];
     const fps = 30;
-    // Mỗi bài đăng 150 frames (5 giây)
     const durationInFrames = Math.max(posts.length * 150, 150);
 
     return (
@@ -21,8 +22,9 @@ export const RemotionRoot: React.FC = () => {
                 fps={fps}
                 width={1080}
                 height={1920}
-                // Truyền toàn bộ inputProps để ThreadsRising nhận được videoData
-                defaultProps={inputProps} 
+                // TRUYỀN THẲNG videoData vào đây. 
+                // Khi đó, bên trong ThreadsRising, các biến như backgroundUrl sẽ nằm ở cấp cao nhất của props.
+                defaultProps={videoData} 
             />
         </>
     );
