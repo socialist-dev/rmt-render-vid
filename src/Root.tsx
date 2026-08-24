@@ -4,12 +4,11 @@ import { ThreadsRising } from './templates/ThreadsRising';
 export const RemotionRoot: React.FC = () => {
     const inputProps = (getInputProps() || {}) as any;
     
-    // Bóc tách chính xác videoData từ JSON của n8n
+    // Lấy videoData từ n8n
     const data = inputProps.videoData || {};
     const posts = data.posts || [];
     
-    const fps = 30;
-    // 150 frames (5 giây) cho mỗi bài đăng
+    // Tính thời lượng: 150 frames mỗi bài, tối thiểu 150 frames
     const durationInFrames = Math.max(posts.length * 150, 150);
 
     return (
@@ -17,10 +16,10 @@ export const RemotionRoot: React.FC = () => {
             id="MainVideo"
             component={ThreadsRising}
             durationInFrames={durationInFrames}
-            fps={fps}
+            fps={30}
             width={1080}
             height={1920}
-            // Truyền object data (chứa backgroundUrl và posts) vào Template
+            // Truyền data (chứa backgroundUrl và posts) vào Template
             defaultProps={data}
         />
     );
