@@ -1,4 +1,4 @@
-name: Remotion Telegram Test
+name: Remotion Video Render v2
 on:
   repository_dispatch:
     types: [render_video]
@@ -24,13 +24,60 @@ jobs:
         run: |
           npx remotion render MainVideo out/video.mp4 --props='${{ toJson(github.event.client_payload.video_data) }}'
 
-      - name: 4. Send to Telegram Bot
+      - name: 4. Upload to Telegram and Log to Sheets
         env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Tôi tạm để GS_URL của bạn, nếu chưa muốn dùng Sheets bạn có thể để trống hoặc comment lại
+          GS_URL: "https://script.google.com/macros/s/AKfycbyyrikjvvSZoaH53fKQyiqeMekTpBxuaSAEg5k8L9wjo8U7NILaxFG88t9iN1YSvIjN/exec"
           TITLE: ${{ github.event.client_payload.title }}
         run: |
-          curl -v -F "chat_id=$TG_CHAT_ID" \
-          -F "video=@out/video.mp4" \
-          -F "caption=🚀 Render xong: $TITLE" \
-          https://api.telegram.org/bot$TG_TOKEN/sendVideo
+          python3 -c "
+          import requests, os, urllib.parse, sys
+          
+          def run():
+              try:
+                  token = os.environ.get('TELEGRAM_TOKEN')
+                  chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+                  title = os.environ.get('TITLE', 'No Title')
+                  gs_url = os.environ.get('GS_URL')
+
+                  if not token or not chat_id:
+                      print('❌ Thiếu Secret TELEGRAM_TOKEN hoặc TELEGRAM_CHAT_ID')
+                      sys.exit(1)
+
+                  # 1. Upload video từ thư mục out/ của Remotion
+                  print('--- Uploading to Telegram ---')
+                  video_path = 'out/video.mp4'
+                  if not os.path.exists(video_path):
+                      print('❌ Không tìm thấy file video tại out/video.mp4')
+                      sys.exit(1)
+
+                  with open(video_path, 'rb') as f:
+                      r_tg = requests.post(
+                          f'https://api.telegram.org/bot{token}/sendVideo',
+                          data={'chat_id': chat_id, 'caption': '✅ Rendered: ' + title},
+                          files={'video': f}
+                      )
+                  
+                  if r_tg.status_code != 200:
+                      print(f'❌ Telegram Error: {r_tg.text}')
+                      sys.exit(1)
+                  
+                  file_id = r_tg.json()['result']['video']['file_id']
+                  print(f'✅ File ID thành công: {file_id}')
+          
+                  # 2. Ghi file_id vào Google Sheets (Nếu bạn chưa muốn ghi thì đoạn này sẽ chạy nhưng không ảnh hưởng nếu GS_URL đúng)
+                  print('--- Logging to Google Sheets ---')
+                  title_enc = urllib.parse.quote(title)
+                  file_id_enc = urllib.parse.quote(file_id)
+                  
+                  final_gs_url = f'{gs_url}?title={title_enc}&url={file_id_enc}'
+                  r_gs = requests.get(final_gs_url)
+                  print(f'✅ Google Sheets response: {r_gs.text}')
+                  
+              except Exception as e:
+                  print(f'❌ Lỗi Python: {str(e)}')
+                  sys.exit(1)
+          run()
+          "
