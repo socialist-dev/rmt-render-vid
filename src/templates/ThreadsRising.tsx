@@ -1,48 +1,44 @@
 import { AbsoluteFill, Series, interpolate, useCurrentFrame, useVideoConfig, spring, OffthreadVideo } from 'remotion';
 import { ThreadsCard } from '../components/ThreadsCard';
 
-export const ThreadsRising: React.FC<any> = (props) => {
-    // Dán cứng URL của bạn vào đây làm giá trị mặc định (Fallback)
-    const HARDCODED_URL = "https://cdn.pixabay.com/video/2026/01/04/325957_large.mp4";
-    
-    // Ưu tiên lấy từ n8n, nếu không có thì lấy link dán cứng
-    const backgroundUrl = props.backgroundUrl || HARDCODED_URL;
-    const posts = props.posts || [];
-
+export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
     return (
         <AbsoluteFill style={{ backgroundColor: '#000' }}>
             {/* Background Video */}
             <AbsoluteFill>
-                <OffthreadVideo 
-                    src={backgroundUrl} 
-                    style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'cover', 
-                        opacity: 0.5 
-                    }}
-                />
+                {backgroundUrl && (
+                    <OffthreadVideo 
+                        src={backgroundUrl} 
+                        style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover', 
+                            opacity: 0.5 
+                        }}
+                    />
+                )}
             </AbsoluteFill>
 
-            {/* Grid Overlay */}
+            {/* Grid Overlay trang trí */}
             <AbsoluteFill style={{ 
                 backgroundImage: 'radial-gradient(circle, #ffffff1a 1px, transparent 1px)', 
                 backgroundSize: '40px 40px' 
             }} />
 
             <Series>
-                {posts.length > 0 ? posts.map((post: any, index: number) => (
+                {posts.map((post: any, index: number) => (
                     <Series.Sequence key={index} durationInFrames={150}>
                         <RisingAnimation>
                             <ThreadsCard {...post} />
                         </RisingAnimation>
                     </Series.Sequence>
-                )) : null}
+                ))}
             </Series>
         </AbsoluteFill>
     );
 };
 
+// Giữ nguyên RisingAnimation bên dưới...
 const RisingAnimation: React.FC<{children: React.ReactNode}> = ({ children }) => {
     const frame = useCurrentFrame();
     const { fps, height } = useVideoConfig();
