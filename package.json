@@ -1,8 +1,7 @@
-
 {
-  "name": "remotion-auto-video",
+  "name": "rmt-render-vid",
   "version": "1.0.0",
-  "description": "Dự án sản xuất video tự động với n8n và GitHub Action",
+  "description": "Automated video production project using Remotion, n8n, and GitHub Actions",
   "main": "src/index.ts",
   "scripts": {
     "start": "remotion preview",
@@ -16,6 +15,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
+    "@types/node": "^18.0.0",
     "typescript": "^5.0.0"
   }
 }
