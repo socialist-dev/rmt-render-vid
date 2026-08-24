@@ -22,7 +22,11 @@ jobs:
 
       - name: 3. Render Remotion Video
         run: |
-          npx remotion render MainVideo out/video.mp4 --props='${{ toJson(github.event.client_payload.video_data) }}'
+          # Ghi toàn bộ payload từ n8n vào file input.json để tránh lỗi ký tự đặc biệt
+          echo '${{ toJson(github.event.client_payload) }}' > input.json
+          
+          # Ra lệnh cho Remotion render và đọc props từ file
+          npx remotion render MainVideo out/video.mp4 --props=./input.json
 
       - name: 4. Upload to Telegram Only
         env:
