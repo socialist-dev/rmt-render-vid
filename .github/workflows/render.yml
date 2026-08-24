@@ -7,13 +7,12 @@ jobs:
   render:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: 1. Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
 
       - name: 2. Install Dependencies
         run: |
@@ -22,7 +21,6 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: 3. Render Remotion Video
-        # n8n gửi payload: {"video_data": {"images": [...], "texts": [...]}}
         run: |
           npx remotion render MainVideo out/video.mp4 --props='${{ toJson(github.event.client_payload.video_data) }}'
 
