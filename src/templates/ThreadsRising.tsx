@@ -41,6 +41,9 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                 {posts.map((post: any, index: number) => {
                     const mediaSrc = post.supportingMediaUrl;
                     const isGif = mediaSrc?.toLowerCase().endsWith('.gif') || mediaSrc?.includes('giphy.com') || mediaSrc?.includes('tenor.com');
+                    
+                    // Xác định bài có phải là reply hay không dựa vào trường type từ n8n
+                    const isReply = post.type === 'reply' || (post.type === undefined && index !== 0);
 
                     return (
                         <Series.Sequence key={index} durationInFrames={150}>
@@ -49,16 +52,16 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                {/* Bọc animation cho Card, truyền isReply={index !== 0} */}
-                                <RisingAnimation animate={index !== 0}>
-                                    <ThreadsCard {...post} isReply={index !== 0} />
+                                {/* CHỈ KÍCH HOẠT ANIMATION TRỒI CHO BÀI REPLY */}
+                                <RisingAnimation animate={isReply}>
+                                    <ThreadsCard {...post} type={post.type || (index === 0 ? 'post' : 'reply')} />
                                 </RisingAnimation>
                                 
-                                {/* Khung Media GIF/Video phía dưới (ĐÃ SỬA CHÍNH TẢ position) */}
+                                {/* Khung Media GIF/Video phía dưới (Cố định 900px) */}
                                 {mediaSrc && (
                                     <div style={{
-                                        position: 'relative',        // ĐÃ SỬA: position chuẩn xác
-                                        zIndex: 10,                 // Hoạt động chuẩn để che bài đăng lúc trồi lên
+                                        position: 'relative',
+                                        zIndex: 10,
                                         marginTop: '28px',
                                         width: '900px',
                                         height: '520px',
