@@ -79,7 +79,7 @@ export const ThreadsCard: React.FC<any> = ({
                     </span>
                     <span style={{ color: '#777777', fontSize: '26px' }}>·</span>
                     <span style={{ 
-                        color: '#f3f5f7', 
+                        color: '#777777', 
                         fontSize: '26px', 
                         fontWeight: '600',
                         letterSpacing: '-0.2px'
