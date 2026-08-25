@@ -3,14 +3,19 @@ const fs = require('fs');
 const path = require('path');
 
 async function capture() {
-    // 1. Đọc dữ liệu từ n8n gửi lên (n8n gửi vào file input.json)
     const inputPath = path.join(__dirname, 'input.json');
     if (!fs.existsSync(inputPath)) {
-        console.error("Không tìm thấy file input.json");
+        console.error("❌ Không tìm thấy file input.json");
         process.exit(1);
     }
+    
     const input = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
-    const posts = input.videoData.posts || [];
+    const posts = input.videoData?.posts || [];
+
+    if (posts.length === 0) {
+        console.log("⚠️ Không có bài đăng nào trong posts!");
+        return;
+    }
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -18,35 +23,85 @@ async function capture() {
     });
 
     const page = await browser.newPage();
-    // Đặt kích thước màn hình lớn để ảnh chụp sắc nét (Retina)
     await page.setViewport({ width: 1080, height: 1920, deviceScaleFactor: 2 });
+
+    const publicDir = path.join(__dirname, 'public');
+    if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true });
+    }
 
     for (let i = 0; i < posts.length; i++) {
         const post = posts[i];
-        // Sử dụng link Embed chính thức của Threads
-        // Ví dụ: https://www.threads.net/t/C_xxxx/embed
-        const embedUrl = `${post.url}/embed`;
-
-        console.log(`Đang chụp bài đăng ${i}: ${embedUrl}`);
         
-        await page.goto(embedUrl, { waitUntil: 'networkidle2' });
-        
-        // Đợi cho đến khi cái khung bài đăng Threads hiện ra
-        await page.waitForSelector('article', { timeout: 15000 });
+        // 1. Xác định URL bài đăng Threads
+        let postUrl = post.url;
+        if (!postUrl && post.id) {
+            const handle = post.handle || 'threads';
+            postUrl = `https://www.threads.com/@${handle}/post/${post.id}`;
+        }
 
-        // Chụp riêng cái khung bài đăng (article)
-        const element = await page.$('article');
-        await element.screenshot({
-            path: path.join(__dirname, 'public', `post_${i}.png`),
-            omitBackground: true // Để nền trong suốt
-        });
+        if (!postUrl) {
+            console.error(`❌ Bài đăng ${i} thiếu trường 'url' hoặc 'id' trong n8n JSON!`);
+            continue;
+        }
+
+        console.log(`📸 Đang chụp bài đăng ${i}: ${postUrl}`);
+
+        try {
+            // Nhúng mã HTML chứa embed chính thức của Threads
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body {
+                            background: transparent;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                            margin: 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <blockquote class="text-post-media" 
+                                data-text-post-permalink="${postUrl}" 
+                                data-text-post-version="0">
+                    </blockquote>
+                    <script async src="https://www.threads.com/embed.js"></script>
+                </body>
+                </html>
+            `;
+
+            await page.setContent(htmlContent, { waitUntil: 'networkidle2' });
+            
+            // Đợi script embed của Meta biến blockquote thành iframe (tối đa 15s)
+            await page.waitForSelector('iframe', { timeout: 15000 });
+            // Chờ thêm 1.5s để ảnh/avatar trong embed tải đủ
+            await new Promise(r => setTimeout(r, 1500));
+
+            const iframeElement = await page.$('iframe');
+            if (iframeElement) {
+                await iframeElement.screenshot({
+                    path: path.join(publicDir, `post_${i}.png`),
+                    omitBackground: true
+                });
+                console.log(`✅ Chụp thành công: post_${i}.png`);
+            } else {
+                console.error(`❌ Không tìm thấy phần tử để chụp cho bài đăng ${i}`);
+            }
+        } catch (err) {
+            console.error(`❌ Lỗi chụp bài đăng ${i}:`, err.message);
+        }
     }
 
     await browser.close();
-    console.log("Hoàn thành chụp ảnh tất cả bài đăng!");
+    console.log("🎉 Hoàn thành xử lý screenshot!");
 }
 
 capture().catch(err => {
-    console.error(err);
+    console.error("Lỗi tổng:", err);
     process.exit(1);
 });
