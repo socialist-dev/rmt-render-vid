@@ -1,32 +1,27 @@
 import { Composition, getInputProps } from 'remotion';
-import { ThreadsRisingReact } from './templates/ThreadsRisingReact';
-import { ThreadsRisingScreenshot } from './templates/ThreadsRisingScreenshot';
+import { ThreadsRising } from './templates/ThreadsRising';
 
 export const RemotionRoot: React.FC = () => {
-    const inputProps = (getInputProps() || {}) as any;
+    // Lấy dữ liệu từ file input.json (do lệnh --props=./input.json điều khiển)
+    const payload = (getInputProps() || {}) as any;
     
-    // 1. Xác định Template ID từ n8n gửi lên (mặc định dùng screenshot cho xịn)
-    const templateId = inputProps.templateId || 'threads-screenshot';
-    const videoData = inputProps.videoData || {};
-    const posts = videoData.posts || [];
+    // Bóc tách videoData (cấu trúc n8n gửi: client_payload.videoData)
+    const data = payload.videoData || {};
+    const posts = data.posts || [];
     
-    // 2. Chọn Component tương ứng
-    const SelectedTemplate = templateId === 'threads-react' 
-        ? ThreadsRisingReact 
-        : ThreadsRisingScreenshot;
-
     const fps = 30;
     const durationInFrames = Math.max(posts.length * 150, 150);
 
     return (
         <Composition
             id="MainVideo"
-            component={SelectedTemplate}
+            component={ThreadsRising}
             durationInFrames={durationInFrames}
             fps={fps}
             width={1080}
             height={1920}
-            defaultProps={videoData}
+            // Truyền trực tiếp nội dung bên trong videoData vào template
+            defaultProps={data}
         />
     );
 };
