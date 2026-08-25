@@ -51,8 +51,8 @@ export const ThreadsCard: React.FC<any> = ({
             background: '#101010',
             border: '1px solid #282828',
             borderRadius: '24px',
-            maxWidth: '880px',
-            width: '92%',
+            // maxWidth: '880px',
+            width: '900px',
             padding: '36px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
             boxShadow: '0 16px 45px rgba(0, 0, 0, 0.6)',
@@ -112,10 +112,12 @@ export const ThreadsCard: React.FC<any> = ({
                     border: '1px solid #282828', 
                     marginBottom: '26px',
                     // maxHeight: '620px'
+                    width: '100%',
+                    boxSizing: 'border-box'
                 }}>
                     <Img 
                         src={mediaUrl} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                        style={{ width: '100%', height: 'auto', objectFit: 'cover', display: 'block' }} 
                     />
                 </div>
             )}
