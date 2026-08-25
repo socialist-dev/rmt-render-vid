@@ -49,19 +49,18 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                {/* CHỈ BỌC ANIMATION CHO THREADS CARD (Từ cảnh 2 trở đi: index !== 0) */}
+                                {/* Bọc animation cho Card, truyền isReply={index !== 0} */}
                                 <RisingAnimation animate={index !== 0}>
-                                    {/* Tự động bật chế độ Reply (có thanh nối, ẩn Follow) từ cảnh 2 trở đi */}
                                     <ThreadsCard {...post} isReply={index !== 0} />
                                 </RisingAnimation>
                                 
-                                {/* KHUNG MEDIA BỔ TRỢ PHÍA DƯỚI: CỐ ĐỊNH HOÀN TOÀN Ở MỌI CẢNH */}
+                                {/* Khung Media GIF/Video phía dưới (ĐÃ SỬA CHÍNH TẢ position) */}
                                 {mediaSrc && (
                                     <div style={{
-                                        positin: 'relative',
-                                        zIndex: 10,
+                                        position: 'relative',        // ĐÃ SỬA: position chuẩn xác
+                                        zIndex: 10,                 // Hoạt động chuẩn để che bài đăng lúc trồi lên
                                         marginTop: '28px',
-                                        width: '900px',             // Đồng bộ 900px với ThreadsCard
+                                        width: '900px',
                                         height: '520px',
                                         borderRadius: '24px',
                                         overflow: 'hidden',
@@ -92,19 +91,16 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
     );
 };
 
-// Component xử lý hiệu ứng trồi riêng cho Card
 const RisingAnimation: React.FC<{children: React.ReactNode, animate: boolean}> = ({ children, animate }) => {
     const frame = useCurrentFrame();
     const { fps, height } = useVideoConfig();
 
-    // Nếu animate = true, kích hoạt hiệu ứng nảy lò xo
     const spr = animate ? spring({ 
         frame, 
         fps, 
         config: { damping: 16, stiffness: 100 } 
     }) : 1;
     
-    // Trồi từ dưới lên vị trí mặc định
     const translateY = animate ? interpolate(spr, [0, 1], [height / 2, 0]) : 0;
     const opacity = animate ? interpolate(spr, [0, 0.4], [0, 1]) : 1;
     const scale = animate ? interpolate(spr, [0, 1], [0.95, 1]) : 1;
