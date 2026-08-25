@@ -51,7 +51,8 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                             }}>
                                 {/* CHỈ BỌC ANIMATION CHO THREADS CARD (Từ cảnh 2 trở đi: index !== 0) */}
                                 <RisingAnimation animate={index !== 0}>
-                                    <ThreadsCard {...post} />
+                                    {/* Tự động bật chế độ Reply (có thanh nối, ẩn Follow) từ cảnh 2 trở đi */}
+                                    <ThreadsCard {...post} isReply={index !== 0} />
                                 </RisingAnimation>
                                 
                                 {/* KHUNG MEDIA BỔ TRỢ PHÍA DƯỚI: CỐ ĐỊNH HOÀN TOÀN Ở MỌI CẢNH */}
