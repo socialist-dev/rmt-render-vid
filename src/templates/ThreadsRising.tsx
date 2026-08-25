@@ -57,6 +57,8 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                                 {/* KHUNG MEDIA BỔ TRỢ PHÍA DƯỚI: CỐ ĐỊNH HOÀN TOÀN Ở MỌI CẢNH */}
                                 {mediaSrc && (
                                     <div style={{
+                                        positin: 'relative',
+                                        zIndex: 10,
                                         marginTop: '28px',
                                         width: '900px',             // Đồng bộ 900px với ThreadsCard
                                         height: '520px',
@@ -108,6 +110,8 @@ const RisingAnimation: React.FC<{children: React.ReactNode, animate: boolean}> =
 
     return (
         <div style={{ 
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
             justifyContent: 'center', 
             alignItems: 'center',
