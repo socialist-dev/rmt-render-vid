@@ -36,8 +36,8 @@ export const ThreadsRising: React.FC<any> = ({ backgroundUrl, posts = [] }) => {
                                 {mediaSrc && (
                                     <div style={{
                                         marginTop: '30px',
-                                        width: '850px',
-                                        height: '550px',
+                                        width: '900px',
+                                        height: 'auto',
                                         borderRadius: '24px',
                                         overflow: 'hidden',
                                         border: '5px solid #fff',
