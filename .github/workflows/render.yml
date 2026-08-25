@@ -1,4 +1,4 @@
-name: Remotion Threads Screenshot Render
+name: Remotion Telegram Test
 on:
   repository_dispatch:
     types: [render_video]
@@ -12,33 +12,23 @@ jobs:
       - name: 1. Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20 # Khuyên dùng bản 20 để Puppeteer chạy ổn định nhất
+          node-version: 18
 
-      - name: 2. Install Dependencies & Chrome
+      - name: 2. Install Dependencies
         run: |
           npm install
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          # Bước cực kỳ quan trọng: Cài đặt trình duyệt Chrome và các thư viện hệ thống cần thiết cho Puppeteer
-          sudo npx puppeteer browsers install chrome --install-deps
 
-      - name: 3. Capture Threads Screenshots
+      - name: 3. Render Remotion Video
         run: |
-          # 1. Ghi dữ liệu từ n8n vào file input.json
+          # Ghi toàn bộ payload từ n8n vào file input.json để tránh lỗi ký tự đặc biệt
           echo '${{ toJson(github.event.client_payload) }}' > input.json
           
-          # 2. Tạo thư mục public để chứa ảnh chụp tạm thời
-          mkdir -p public
-          
-          # 3. Chạy script chụp ảnh bài đăng Threads (File capture_threads.js bạn đã tạo)
-          node capture_threads.js
-
-      - name: 4. Render Remotion Video
-        run: |
-          # Ra lệnh cho Remotion render và đọc dữ liệu từ file input.json
+          # Ra lệnh cho Remotion render và đọc props từ file
           npx remotion render MainVideo out/video.mp4 --props=./input.json
 
-      - name: 5. Upload to Telegram Only
+      - name: 4. Upload to Telegram Only
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -59,12 +49,12 @@ jobs:
                   with open(video_path, 'rb') as f:
                       r_tg = requests.post(
                           f'https://api.telegram.org/bot{token}/sendVideo',
-                          data={'chat_id': chat_id, 'caption': '🚀 Rendered: ' + title},
+                          data={'chat_id': chat_id, 'caption': '🚀 Test Render: ' + title},
                           files={'video': f}
                       )
                   
                   if r_tg.status_code == 200:
-                      print('✅ Thành công! Kiểm tra Telegram.')
+                      print('✅ Thành công! Kiểm tra Telegram của bạn.')
                   else:
                       print(f'❌ Lỗi Telegram: {r_tg.text}')
                       sys.exit(1)
