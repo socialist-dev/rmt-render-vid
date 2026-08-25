@@ -51,7 +51,7 @@ export const ThreadsCard: React.FC<any> = ({
             background: '#101010',
             border: '1px solid #282828',
             borderRadius: '24px',
-            maxWidth: '880px',
+            // maxWidth: '880px',
             width: '92%',
             padding: '36px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
